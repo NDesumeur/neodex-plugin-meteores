@@ -77,7 +77,7 @@ let sh = null;
 function shStart() {
   sh = sh || {raf: 0};
   Object.assign(sh, {g: $('shCanvas').getContext('2d'), mode: 'ready', tick: 0, t: 0, x: SH.W / 2, y: SH.H - 34, vx: 0, vy: 0, target: null, shots: [], bullets: [], rocks: [], foes: [], items: [], parts: [], score: 0, lives: 3,
-    inv: 0, cool: 0, power: 1, bombs: 2, flashB: 0, shield: 0, magnet: 0, mult: 1, multT: 0, kills: 0, wave: 0, queue: [], spawnT: 0, banner: 0, boss: null, shake: 0, keys: {}, firing: false, overAt: 0,
+    inv: 0, cool: 0, power: 1, bombs: 2, flashB: 0, shield: 0, magnet: 0, mult: 1, multT: 0, kills: 0, wave: 0, queue: [], spawnT: 0, banner: 0, dry: 0, boss: null, shake: 0, keys: {}, firing: false, overAt: 0,
     stars: Array.from({length: 90}, () => [Math.random() * SH.W, Math.random() * SH.H, Math.random()])});
   shNextWave();
   $('shInfo').textContent = 'Record : ' + (games?.best.shooter ?? 0) + ' · meilleure vague ' + (games?.best.shooterWave ?? 0);
@@ -89,16 +89,16 @@ function shNextWave() {  // what the wave sends, one after the other; every 5th 
   if (w % 5 === 0) { sh.queue.push({kind: 'boss', at: 60}); return; }
   let at = 0;
   const add = (kind, n, gap, extra = {}) => { for (let i = 0; i < n; i++) { sh.queue.push({kind, at, i, n, ...extra}); at += gap; } at += 40; };
-  add('rock', 4 + w, Math.max(16, 44 - w * 2));
-  if (w >= 2) add('drone', 3 + Math.floor(w / 2), 22, {lane: Math.random() < .5 ? -1 : 1});
-  if (w >= 3) add('kamikaze', 2 + Math.floor(w / 3), 30);
-  if (w >= 4) add('turret', 1 + Math.floor(w / 6), 90);
-  if (w >= 6) add('drone', 4 + Math.floor(w / 3), 18, {lane: 0});
+  add('rock', Math.min(4 + w, 16), Math.max(20, 44 - w * 2));
+  if (w >= 2) add('drone', Math.min(3 + Math.floor(w / 2), 9), 22, {lane: Math.random() < .5 ? -1 : 1});
+  if (w >= 3) add('kamikaze', Math.min(2 + Math.floor(w / 3), 6), 34);
+  if (w >= 4) add('turret', Math.min(1 + Math.floor(w / 6), 3), 90);
+  if (w >= 6) add('drone', Math.min(4 + Math.floor(w / 3), 10), 18, {lane: 0});
   sh.queue.sort((a, b) => a.at - b.at);
 }
 function shSpawn(q) {
-  const w = sh.wave, hpK = 1 + w * .08;
-  if (q.kind === 'rock') { const sz = Math.random() < .25 + w * .03 ? 3 : Math.random() < .6 ? 2 : 1, r = SH.sizes[sz].r; sh.rocks.push({x: r + Math.random() * (SH.W - 2 * r), y: -r - 2, vx: (Math.random() - .5) * .5, vy: .5 + Math.random() * .35 + w * .05, sz, hp: SH.sizes[sz].hp, flash: 0}); return; }
+  const w = sh.wave, hpK = 1 + Math.min(w, 25) * .07  /* la solidité des ennemis cesse de monter à la vague 25 */;
+  if (q.kind === 'rock') { const sz = Math.random() < .25 + w * .03 ? 3 : Math.random() < .6 ? 2 : 1, r = SH.sizes[sz].r; sh.rocks.push({x: r + Math.random() * (SH.W - 2 * r), y: -r - 2, vx: (Math.random() - .5) * .5, vy: .5 + Math.random() * .35 + Math.min(w, 16) * .05, sz, hp: SH.sizes[sz].hp, flash: 0}); return; }
   if (q.kind === 'boss') { const hp = Math.round(SH.foes.boss.hp * (w / 5) ** .9); sh.boss = {x: SH.W / 2, y: -30, hp, max: hp, t: 0, flash: 0, phase: 0}; sh.banner = 150; sfx('launch'); return; }
   const d = SH.foes[q.kind], x = q.kind === 'drone' ? (q.lane === 0 ? 30 + (q.i % 6) * 36 : SH.W / 2 + q.lane * 60) : 20 + Math.random() * (SH.W - 40);
   sh.foes.push({kind: q.kind, x, y: -10, x0: x, t: 0, hp: Math.ceil(d.hp * hpK), flash: 0, vx: 0, vy: q.kind === 'turret' ? .35 : 1.1, cool: 60 + Math.random() * 60, phase: Math.random() * 6});
@@ -110,8 +110,15 @@ function shPress() {
 }
 function shBoom(x, y, n, colors, speed = 1.8) { for (let k = 0; k < n; k++) { const a = Math.random() * 6.28, s = Math.random() * speed + .4; sh.parts.push({x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 18 + Math.random() * 14, c: colors[k % colors.length]}); } }
 function shDrop(x, y, chance) {
-  if (Math.random() < chance) { const r = Math.random(), kind = r < .38 ? 'P' : r < .55 ? 'B' : r < .72 ? 'S' : r < .86 ? 'M' : sh.lives < 5 ? 'L' : 'G'; sh.items.push({x, y, kind, vy: .6}); }
-  else if (Math.random() < .35) sh.items.push({x, y, kind: 'G', vy: .8});  // a score gem
+  chance += Math.min(.2, sh.dry * .01);  // la chance monte tant que rien ne tombe
+  if (Math.random() < chance) {
+    sh.dry = 0;
+    // arme +1 plus fréquente quand tu es faible, bouclier quand il te reste une vie, vie surtout quand tu en as peu
+    const wts = {P: sh.power <= 2 ? .42 : .3, B: .15, S: sh.lives <= 1 ? .3 : .17, M: .12, L: sh.lives < 3 ? .1 : sh.lives < 5 ? .05 : 0, G: .1};
+    let r = Math.random() * Object.values(wts).reduce((s, v) => s + v, 0), kind = 'G';
+    for (const [k, v] of Object.entries(wts)) if ((r -= v) < 0) { kind = k; break; }
+    sh.items.push({x, y, kind, vy: .6});
+  } else { sh.dry++; if (Math.random() < .35) sh.items.push({x, y, kind: 'G', vy: .8}); }  // a score gem
 }
 function shAim(x, y, speed, spread = 0, n = 1) {  // enemy bullets toward the ship
   const a0 = Math.atan2(sh.y - y, sh.x - x);
@@ -132,7 +139,7 @@ function shBomb() {
 function shHurt() {
   if (sh.inv > 0) return;
   if (sh.shield > 0) { sh.shield = 0; sh.inv = 60; sfx('click'); shBoom(sh.x, sh.y, 10, ['#8ee8a0', '#ffffff']); return; }
-  sh.lives--; sh.inv = 140; sh.shake = 12; sh.power = Math.max(1, sh.power - 1); sh.mult = 1; sh.kills = Math.floor(sh.kills / 2); sh.bullets = [];
+  sh.lives--; if (sh.lives === 1 && sh.bombs < 1) sh.bombs = 1; sh.inv = 140; sh.shake = 12; sh.power = Math.max(1, sh.power - 1); sh.mult = 1; sh.kills = Math.floor(sh.kills / 2); sh.bullets = [];
   shBoom(sh.x, sh.y, 24, ['#ff5ad9', '#ffffff', '#ffd07a'], 2.4); sfx('error');
   if (sh.lives <= 0) {
     sh.mode = 'over'; sh.overAt = Date.now();
@@ -176,7 +183,7 @@ function shUpdate() {
   for (const f of sh.foes) {
     f.t++; if (f.flash) f.flash--;
     if (f.kind === 'drone') { f.y += f.vy; f.x = f.x0 + Math.sin(f.t / 30 + f.phase) * 26; if (--f.cool <= 0 && f.y > 10 && f.y < SH.H * .6) { shAim(f.x, f.y + 4, 1.7); f.cool = Math.max(50, 120 - sh.wave * 6); } }
-    if (f.kind === 'kamikaze') { if (f.t < 50) f.y += 1; else { const a = Math.atan2(sh.y - f.y, sh.x - f.x); f.vx += Math.cos(a) * .12; f.vy += Math.sin(a) * .12; const v = Math.hypot(f.vx, f.vy), m = 2.4 + sh.wave * .05; if (v > m) { f.vx *= m / v; f.vy *= m / v; } f.x += f.vx; f.y += f.vy; } }
+    if (f.kind === 'kamikaze') { if (f.t < 50) f.y += 1; else { const a = Math.atan2(sh.y - f.y, sh.x - f.x); f.vx += Math.cos(a) * .12; f.vy += Math.sin(a) * .12; const v = Math.hypot(f.vx, f.vy), m = Math.min(2.5, 2 + sh.wave * .04); if (v > m) { f.vx *= m / v; f.vy *= m / v; } f.x += f.vx; f.y += f.vy; } }
     if (f.kind === 'turret') { if (f.y < 60) f.y += f.vy; else { f.x += Math.sin(f.t / 50) * .4; if (--f.cool <= 0) { shAim(f.x, f.y + 6, 1.5, .28, 3 + (sh.wave >= 8 ? 2 : 0)); f.cool = 110; } } if (f.t > 900) f.y += .8; }
     if (f.y > SH.H + 20 || f.x < -30 || f.x > SH.W + 30) f.gone = true;
   }
@@ -226,10 +233,10 @@ function shUpdate() {
   sh.items = sh.items.filter(it => !it.got && it.y < SH.H + 8);
   // the ship is hit by meteors, ships, bullets (its hitbox is the cockpit only)
   if (sh.mode === 'play') {
-    for (const r of sh.rocks) if (!r.dead && Math.hypot(r.x - sh.x, r.y - sh.y) < SH.sizes[r.sz].r + 3) { r.dead = true; shBoom(r.x, r.y, 10, ['#c9bdf0', '#8f7bb8']); shHurt(); }
-    for (const f of sh.foes) if (!f.dead && Math.hypot(f.x - sh.x, f.y - sh.y) < SH.foes[f.kind].r + 2) { f.dead = true; shBoom(f.x, f.y, 12, ['#ff4f6d', '#ffd07a']); shHurt(); }
+    for (const r of sh.rocks) if (!r.dead && Math.hypot(r.x - sh.x, r.y - sh.y) < SH.sizes[r.sz].r * .8 + 2) { r.dead = true; shBoom(r.x, r.y, 10, ['#c9bdf0', '#8f7bb8']); shHurt(); }
+    for (const f of sh.foes) if (!f.dead && Math.hypot(f.x - sh.x, f.y - sh.y) < SH.foes[f.kind].r * .8 + 1) { f.dead = true; shBoom(f.x, f.y, 12, ['#ff4f6d', '#ffd07a']); shHurt(); }
     for (const b of sh.bullets) if (!b.hit && Math.hypot(b.x - sh.x, b.y - sh.y) < 3) { b.hit = true; shHurt(); }
-    if (B && Math.abs(B.x - sh.x) < 20 && Math.abs(B.y - sh.y) < 10) shHurt();
+    if (B && Math.abs(B.x - sh.x) < 18 && Math.abs(B.y - sh.y) < 8) shHurt();
   }
   sh.rocks = sh.rocks.filter(r => !r.dead && r.y < SH.H + 14);
   sh.foes = sh.foes.filter(f => !f.dead && !f.gone);
