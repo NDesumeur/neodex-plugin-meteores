@@ -1,0 +1,19 @@
+{
+  "id": "neobase.meteores",
+  "name": "Météores",
+  "version": "1.0.0",
+  "author": "NDesumeur",
+  "description": "Un shoot them up vertical : météores qui se divisent, vaisseaux ennemis, boss.",
+  "icon": "icon.png",
+  "entry": "index.js",
+  "view": "meteores",
+  "neobase": ">=4.0.0",
+  "type": "app",
+  "category": "Jeux",
+  "mobile": false,
+  "system": false,
+  "dependencies": {},
+  "permissions": [
+    "full"
+  ]
+}
