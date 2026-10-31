@@ -1,0 +1,9 @@
+{
+  "pluginId": "neobase.meteores",
+  "repo": "NDesumeur/neobase-plugin-meteores",
+  "version": "1.2.0",
+  "sha256": "74267652d39eae041d083497b107c4a751a20b09cc0e97f7a7482249d3033d3f",
+  "approvedAt": "2026-10-31T23:25:06.364Z",
+  "neobase": ">=4.0.0",
+  "signature": "fIvhnH/pPsMaHieMTc/q4xlxrDDN1Mw2JUtbPWZ/4fIG//l+3jSFB9fxnd8XLxhdZEbEIvz8HK4utn0ZYi3oBg=="
+}
