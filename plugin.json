@@ -1,7 +1,7 @@
 {
   "id": "neobase.meteores",
   "name": "Météores",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": "NDesumeur",
   "description": "Un shoot them up vertical : météores qui se divisent, vaisseaux ennemis, boss.",
   "icon": "icon.png",

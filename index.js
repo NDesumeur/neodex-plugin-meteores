@@ -291,6 +291,16 @@ $('shCanvas').onpointermove = e => { if (!sh) return; const r = e.currentTarget.
 $('shCanvas').onpointerdown = e => { if (!sh) return; if (e.button === 2) return shBomb(); if (shPress()) return; sh.firing = true; };
 $('shCanvas').oncontextmenu = e => e.preventDefault();
 $('shCanvas').onpointerup = $('shCanvas').onpointerleave = () => { if (sh) sh.firing = false; };  // (non indenté : les textes sur plusieurs lignes restent exactement les tiens)
+document.addEventListener('keydown', e => {  // le cœur ne transmet plus les touches : le plugin les écoute lui-même
+  if (!view.classList.contains('on') || !sh || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  if ([' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(k)) e.preventDefault();
+  if (k === ' ' && !e.repeat && shPress()) return;
+  if ((k === 'b' || k === 'x') && !e.repeat) return shBomb();
+  if ((k === 'p' || k === 'Escape') && sh.mode === 'play') sh.mode = 'pause';
+  sh.keys[k] = true;
+});
+document.addEventListener('keyup', e => { const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; if (sh) sh.keys[k] = false; });
   // ---- fin ----
   ctx.onOpen(() => { sh ? gameLoop(sh, 'neodyme:shooter', shUpdate, shDraw) : shStart(); });
 }
