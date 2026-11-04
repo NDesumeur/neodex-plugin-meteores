@@ -1,14 +1,14 @@
 // Météores : ton appli d'origine (HTML et code inchangés), livrée en plugin.
-// Ses données sont dans le dossier du plugin, que NeoBase sauvegarde (synchro cloud et sauvegardes) ; à la première ouverture elle reprend ce que tu avais dans NeoBase.
-// Elle tourne dans le bac à sable de NeoBase, avec ses outils d'interface (ctx.host) et seulement les autorisations de son plugin.json.
+// Ses données sont dans le dossier du plugin, que NeoDex sauvegarde (synchro cloud et sauvegardes) ; à la première ouverture elle reprend ce que tu avais dans NeoDex.
+// Elle tourne dans le bac à sable de NeoDex, avec ses outils d'interface (ctx.host) et seulement les autorisations de son plugin.json.
 const HTML = "<div class=\"appWrap\">\n      <div class=\"agHead\"><span class=\"label\">Pluie de météores</span><span class=\"hint\" id=\"shInfo\"></span></div>\n      <div class=\"gameBox tall\"><canvas id=\"shCanvas\" width=\"240\" height=\"320\"></canvas></div>\n      <div class=\"hint\">Flèches, ZQSD ou souris : bouger partout · espace ou clic maintenu : tirer · B, X ou clic droit : bombe (efface les tirs ennemis) · P ou Échap : pause. Seul le cockpit (le point blanc) peut être touché. Météores, drones qui tirent, kamikazes, tourelles et un vaisseau amiral toutes les 5 vagues. Capsules : P arme (5 niveaux), B bombe, S bouclier, M aimant, L vie ; les gemmes dorées rapportent des points, et le multiplicateur grimpe tant que tu n'es pas touché.</div>\n    </div>";
 /*CSS-MOVED*/ const CSS = `.gameBox{display:grid;place-items:center;padding:10px;background:#05010b;box-shadow:0 0 0 3px var(--line2)}
 .gameBox canvas{width:min(100%,1152px);aspect-ratio:384/144;image-rendering:pixelated;cursor:var(--cp,pointer)}
 .gameBox.tall canvas{width:auto;height:min(720px,72vh);aspect-ratio:240/320}
-`;  // le style de ce plugin (il utilise les variables du thème de NeoBase)
+`;  // le style de ce plugin (il utilise les variables du thème de NeoDex)
 export default async function (ctx) {
   const view = ctx.view;
-  if (!ctx.host) { view.textContent = "Ce plugin doit être approuvé par NeoBase pour s'ouvrir."; return; }
+  if (!ctx.host) { view.textContent = "Ce plugin doit être approuvé par NeoDex pour s'ouvrir."; return; }
   const host = ctx.host, { el, toast, sfx, ask, newTab, pixIcon, PIX, WX } = host;
   const folder = ctx.folder, legacy = ctx.legacy || {};
   ctx.host.addStyle(CSS);
@@ -81,7 +81,7 @@ function shStart() {
     stars: Array.from({length: 90}, () => [Math.random() * SH.W, Math.random() * SH.H, Math.random()])});
   shNextWave();
   $('shInfo').textContent = 'Record : ' + (games?.best.shooter ?? 0) + ' · meilleure vague ' + (games?.best.shooterWave ?? 0);
-  gameLoop(sh, 'neodyme:shooter', shUpdate, shDraw);
+  gameLoop(sh, 'neodex:shooter', shUpdate, shDraw);
 }
 function shNextWave() {  // what the wave sends, one after the other; every 5th wave is a boss
   sh.wave++; sh.banner = 120; sh.queue = []; sh.spawnT = 90;
@@ -302,5 +302,5 @@ document.addEventListener('keydown', e => {  // le cœur ne transmet plus les to
 });
 document.addEventListener('keyup', e => { const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; if (sh) sh.keys[k] = false; });
   // ---- fin ----
-  ctx.onOpen(() => { sh ? gameLoop(sh, 'neodyme:shooter', shUpdate, shDraw) : shStart(); });
+  ctx.onOpen(() => { sh ? gameLoop(sh, 'neodex:shooter', shUpdate, shDraw) : shStart(); });
 }
