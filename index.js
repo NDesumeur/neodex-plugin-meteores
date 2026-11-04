@@ -1,6 +1,6 @@
 // Météores : ton appli d'origine (HTML et code inchangés), livrée en plugin.
 // Ses données sont dans le dossier du plugin, que NeoBase sauvegarde (synchro cloud et sauvegardes) ; à la première ouverture elle reprend ce que tu avais dans NeoBase.
-// Elle demande l'accès complet pour utiliser les outils d'interface de NeoBase. NeoBase ne l'ouvre que si elle est signée.
+// Elle tourne dans le bac à sable de NeoBase, avec ses outils d'interface (ctx.host) et seulement les autorisations de son plugin.json.
 const HTML = "<div class=\"appWrap\">\n      <div class=\"agHead\"><span class=\"label\">Pluie de météores</span><span class=\"hint\" id=\"shInfo\"></span></div>\n      <div class=\"gameBox tall\"><canvas id=\"shCanvas\" width=\"240\" height=\"320\"></canvas></div>\n      <div class=\"hint\">Flèches, ZQSD ou souris : bouger partout · espace ou clic maintenu : tirer · B, X ou clic droit : bombe (efface les tirs ennemis) · P ou Échap : pause. Seul le cockpit (le point blanc) peut être touché. Météores, drones qui tirent, kamikazes, tourelles et un vaisseau amiral toutes les 5 vagues. Capsules : P arme (5 niveaux), B bombe, S bouclier, M aimant, L vie ; les gemmes dorées rapportent des points, et le multiplicateur grimpe tant que tu n'es pas touché.</div>\n    </div>";
 /*CSS-MOVED*/ const CSS = `.gameBox{display:grid;place-items:center;padding:10px;background:#05010b;box-shadow:0 0 0 3px var(--line2)}
 .gameBox canvas{width:min(100%,1152px);aspect-ratio:384/144;image-rendering:pixelated;cursor:var(--cp,pointer)}
