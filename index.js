@@ -1,7 +1,7 @@
 // Météores : ton appli d'origine (HTML et code inchangés), livrée en plugin.
 // Ses données sont dans le dossier du plugin, que NeoDex sauvegarde (synchro cloud et sauvegardes) ; à la première ouverture elle reprend ce que tu avais dans NeoDex.
 // Elle tourne dans le bac à sable de NeoDex, avec ses outils d'interface (ctx.host) et seulement les autorisations de son plugin.json.
-const HTML = "<div class=\"appWrap\">\n      <div class=\"agHead\"><span class=\"label\">Pluie de météores</span><span class=\"hint\" id=\"shInfo\"></span></div>\n      <div class=\"gameBox tall\"><canvas id=\"shCanvas\" width=\"240\" height=\"320\"></canvas></div>\n      <div class=\"hint\">Flèches, ZQSD ou souris : bouger partout · espace ou clic maintenu : tirer · B, X ou clic droit : bombe (efface les tirs ennemis) · P ou Échap : pause. Seul le cockpit (le point blanc) peut être touché. Météores, drones qui tirent, kamikazes, tourelles et un vaisseau amiral toutes les 5 vagues. Capsules : P arme (5 niveaux), B bombe, S bouclier, M aimant, L vie ; les gemmes dorées rapportent des points, et le multiplicateur grimpe tant que tu n'es pas touché.</div>\n    </div>";
+const HTML = "<div class=\"appWrap\">\n      <div class=\"agHead\"><span class=\"label\">Pluie de météores</span><span class=\"hint\" id=\"shInfo\"></span></div>\n      <div class=\"gameBox tall\"><canvas id=\"shCanvas\" width=\"240\" height=\"320\"></canvas></div>\n      <div class=\"hint\">Flèches, ZQSD ou souris : bouger · le vaisseau tire tout seul · espace ou clic droit : bombe (une par vague) · P ou Échap : pause. Seul le cockpit (le point blanc) peut être touché. Des météores, des drones, et un vaisseau amiral toutes les 5 vagues. Bonus : arme plus forte, bouclier, vie.</div>\n    </div>";
 /*CSS-MOVED*/ const CSS = `.gameBox{display:grid;place-items:center;padding:10px;background:#05010b;box-shadow:0 0 0 3px var(--line2)}
 .gameBox canvas{width:min(100%,1152px);aspect-ratio:384/144;image-rendering:pixelated;cursor:var(--cp,pointer)}
 .gameBox.tall canvas{width:auto;height:min(720px,72vh);aspect-ratio:240/320}
@@ -49,8 +49,8 @@ const px = (g, color, x, y, w = 1, h = 1) => { g.fillStyle = color; g.fillRect(M
 function sprite(g, rows, x, y, pal) { rows.forEach((r, j) => { for (let i = 0; i < r.length; i++) { const c = pal[r[i]]; if (c) px(g, c, x + i, y + j); } }); }
   // ---- ton code d'origine ----
 /* ---------- jeu "Météores": a vertical shoot'em up. The ship moves everywhere; meteors that split, enemy ships (zigzag shooters,
-   kamikazes, turrets firing spreads) in waves, a boss every 5 waves; weapon power from 1 to 5, bombs that clear the screen,
-   shield, magnet, score gems and a combo multiplier. Best score and best wave are kept in games.json (synced). ---------- */
+   in waves) and a boss every 5 waves; the ship fires on its own, one bomb per wave clears the screen; bonuses: weapon power
+   from 1 to 5, shield, life; a combo multiplier. Best score and best wave are kept in games.json (synced). ---------- */
 const SH = {W: 240, H: 320,
   ship: ['....oo....', '...owwo...', '...opco...', '..oppppo..', '.oppppppo.', 'oppoppoppo', 'opo.oo.opo', 'oo..yy..oo', '....yy....'],
   pal: {o: '#3e1f80', p: '#ff5ad9', w: '#ffffff', c: '#7fe0ee', y: '#ffd07a', r: '#ff4f6d', g: '#8ee8a0', k: '#1c1238', b: '#5e4d85', d: '#2a1d52', l: '#c9bdf0'},
@@ -77,22 +77,20 @@ let sh = null;
 function shStart() {
   sh = sh || {raf: 0};
   Object.assign(sh, {g: $('shCanvas').getContext('2d'), mode: 'ready', tick: 0, t: 0, x: SH.W / 2, y: SH.H - 34, vx: 0, vy: 0, target: null, shots: [], bullets: [], rocks: [], foes: [], items: [], parts: [], score: 0, lives: 3,
-    inv: 0, cool: 0, power: 1, bombs: 2, flashB: 0, shield: 0, magnet: 0, mult: 1, multT: 0, kills: 0, wave: 0, queue: [], spawnT: 0, banner: 0, dry: 0, boss: null, shake: 0, keys: {}, firing: false, overAt: 0,
+    inv: 0, cool: 0, power: 1, bombs: 1, flashB: 0, shield: 0, magnet: 0, mult: 1, multT: 0, kills: 0, wave: 0, queue: [], spawnT: 0, banner: 0, dry: 0, boss: null, shake: 0, keys: {}, firing: false, overAt: 0,
     stars: Array.from({length: 90}, () => [Math.random() * SH.W, Math.random() * SH.H, Math.random()])});
   shNextWave();
   $('shInfo').textContent = 'Record : ' + (games?.best.shooter ?? 0) + ' · meilleure vague ' + (games?.best.shooterWave ?? 0);
   gameLoop(sh, 'neodex:shooter', shUpdate, shDraw);
 }
 function shNextWave() {  // what the wave sends, one after the other; every 5th wave is a boss
-  sh.wave++; sh.banner = 120; sh.queue = []; sh.spawnT = 90;
+  sh.wave++; sh.banner = 120; if (sh.bombs < 1) sh.bombs = 1; sh.queue = []; sh.spawnT = 90;
   const w = sh.wave;
   if (w % 5 === 0) { sh.queue.push({kind: 'boss', at: 60}); return; }
   let at = 0;
   const add = (kind, n, gap, extra = {}) => { for (let i = 0; i < n; i++) { sh.queue.push({kind, at, i, n, ...extra}); at += gap; } at += 40; };
   add('rock', Math.min(4 + w, 16), Math.max(20, 44 - w * 2));
   if (w >= 2) add('drone', Math.min(3 + Math.floor(w / 2), 9), 22, {lane: Math.random() < .5 ? -1 : 1});
-  if (w >= 3) add('kamikaze', Math.min(2 + Math.floor(w / 3), 6), 34);
-  if (w >= 4) add('turret', Math.min(1 + Math.floor(w / 6), 3), 90);
   if (w >= 6) add('drone', Math.min(4 + Math.floor(w / 3), 10), 18, {lane: 0});
   sh.queue.sort((a, b) => a.at - b.at);
 }
@@ -114,11 +112,11 @@ function shDrop(x, y, chance) {
   if (Math.random() < chance) {
     sh.dry = 0;
     // arme +1 plus fréquente quand tu es faible, bouclier quand il te reste une vie, vie surtout quand tu en as peu
-    const wts = {P: sh.power <= 2 ? .42 : .3, B: .15, S: sh.lives <= 1 ? .3 : .17, M: .12, L: sh.lives < 3 ? .1 : sh.lives < 5 ? .05 : 0, G: .1};
-    let r = Math.random() * Object.values(wts).reduce((s, v) => s + v, 0), kind = 'G';
+    const wts = {P: sh.power <= 2 ? .5 : .35, S: sh.lives <= 1 ? .35 : .2, L: sh.lives < 3 ? .15 : sh.lives < 5 ? .06 : 0};
+    let r = Math.random() * Object.values(wts).reduce((s, v) => s + v, 0), kind = 'P';
     for (const [k, v] of Object.entries(wts)) if ((r -= v) < 0) { kind = k; break; }
     sh.items.push({x, y, kind, vy: .6});
-  } else { sh.dry++; if (Math.random() < .35) sh.items.push({x, y, kind: 'G', vy: .8}); }  // a score gem
+  } else sh.dry++;
 }
 function shAim(x, y, speed, spread = 0, n = 1) {  // enemy bullets toward the ship
   const a0 = Math.atan2(sh.y - y, sh.x - x);
@@ -164,7 +162,7 @@ function shUpdate() {
   else if (sh.target) { sh.vx += Math.max(-.5, Math.min(.5, (sh.target[0] - sh.x) * .09)); sh.vy += Math.max(-.5, Math.min(.5, (sh.target[1] - sh.y) * .09)); }
   sh.vx = Math.max(-3, Math.min(3, sh.vx * .84)); sh.vy = Math.max(-3, Math.min(3, sh.vy * .84));
   sh.x = Math.max(6, Math.min(SH.W - 6, sh.x + sh.vx)); sh.y = Math.max(40, Math.min(SH.H - 10, sh.y + sh.vy));
-  if (--sh.cool <= 0 && (K[' '] || sh.firing)) shFire();
+  if (--sh.cool <= 0) shFire();  // le vaisseau tire tout seul
   for (const k of ['inv', 'shield', 'magnet', 'banner', 'flashB']) if (sh[k] > 0) sh[k]--;
   if (sh.multT > 0 && --sh.multT === 0) { sh.mult = 1; sh.kills = 0; }
   // the wave
@@ -283,12 +281,12 @@ function shDraw() {
   for (let i = 0; i < 5; i++) px(g, i < sh.power ? '#7fe0ee' : '#2a1d52', W - 50 + i * 6, 16, 5, 3);
   for (let i = 0; i < sh.bombs; i++) { px(g, '#ff9a3c', W - 50 + i * 6, 21, 4, 4); px(g, '#ffd07a', W - 49 + i * 6, 21, 1, 1); }
   if (sh.mode === 'play' && sh.banner > 0) gameText(g, W, sh.wave % 5 === 0 ? [['ALERTE !', '#ff4f6d', 10], ['VAISSEAU AMIRAL', '#ff5ad9']] : [['VAGUE ' + sh.wave, '#ff5ad9', 10]], 120);
-  if (sh.mode === 'ready') gameText(g, W, [['MÉTÉORES', '#ff5ad9', 10], ['FLÈCHES / ZQSD / SOURIS', '#d9c6ff'], ['ESPACE OU CLIC : TIRER', '#d9c6ff'], ['B OU CLIC DROIT : BOMBE', '#d9c6ff'], ['P ARME · S BOUCLIER · L VIE', '#8f7bb8'], ['M AIMANT · B BOMBE', '#8f7bb8'], ['APPUIE POUR JOUER', '#ffffff']], 100);
+  if (sh.mode === 'ready') gameText(g, W, [['MÉTÉORES', '#ff5ad9', 10], ['FLÈCHES / ZQSD / SOURIS', '#d9c6ff'], ['LE VAISSEAU TIRE TOUT SEUL', '#d9c6ff'], ['ESPACE : BOMBE (UNE PAR VAGUE)', '#d9c6ff'], ['P ARME · S BOUCLIER · L VIE', '#8f7bb8'], ['APPUIE POUR JOUER', '#ffffff']], 100);
   if (sh.mode === 'pause') gameText(g, W, [['PAUSE', '#ff5ad9', 10], ['ESPACE POUR REPRENDRE', '#ffffff']], 140);
   if (sh.mode === 'over') gameText(g, W, [['PERDU', '#ff5ad9', 10], ['SCORE ' + sh.score, '#ffffff'], ['VAGUE ' + sh.wave, '#d9c6ff'], ['RECORD ' + (games?.best.shooter ?? 0), '#ffd07a'], ['ESPACE POUR REJOUER', '#d9c6ff']], 120);
 }
 $('shCanvas').onpointermove = e => { if (!sh) return; const r = e.currentTarget.getBoundingClientRect(); sh.target = [(e.clientX - r.left) / r.width * SH.W, (e.clientY - r.top) / r.height * SH.H - 14]; };
-$('shCanvas').onpointerdown = e => { if (!sh) return; if (e.button === 2) return shBomb(); if (shPress()) return; sh.firing = true; };
+$('shCanvas').onpointerdown = e => { if (!sh) return; if (e.button === 2) return shBomb(); shPress(); };
 $('shCanvas').oncontextmenu = e => e.preventDefault();
 $('shCanvas').onpointerup = $('shCanvas').onpointerleave = () => { if (sh) sh.firing = false; };  // (non indenté : les textes sur plusieurs lignes restent exactement les tiens)
 document.addEventListener('keydown', e => {  // le cœur ne transmet plus les touches : le plugin les écoute lui-même
@@ -296,7 +294,7 @@ document.addEventListener('keydown', e => {  // le cœur ne transmet plus les to
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
   if ([' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(k)) e.preventDefault();
   if (k === ' ' && !e.repeat && shPress()) return;
-  if ((k === 'b' || k === 'x') && !e.repeat) return shBomb();
+  if ((k === 'b' || k === 'x' || (k === ' ' && sh.mode === 'play')) && !e.repeat) return shBomb();
   if ((k === 'p' || k === 'Escape') && sh.mode === 'play') sh.mode = 'pause';
   sh.keys[k] = true;
 });
