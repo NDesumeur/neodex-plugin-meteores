@@ -1,7 +1,7 @@
 {
   "id": "neodex.meteores",
   "name": "Météores",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "author": "NDesumeur",
   "description": "Jeu de tir spatial vertical : ton vaisseau tire tout seul, déplace-le au clavier ou à la souris pour détruire des météores qui se divisent, des drones en vagues et un vaisseau amiral toutes les 5 vagues. Seul le cockpit est vulnérable ; bombes, bouclier, aimant, vies et arme jusqu'au niveau 5, multiplicateur jusqu'à ×8, record de score et de vague.",
   "icon": "icon.png",
