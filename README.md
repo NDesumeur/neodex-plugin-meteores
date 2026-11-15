@@ -10,6 +10,8 @@ Un jeu de tir spatial à défilement vertical : ton vaisseau tire tout seul, à 
 - Le vaisseau **tire tout seul**.
 - **Espace** ou **clic droit** : **bombe**, qui nettoie l'écran (une par vague au moins).
 - **P** ou **Échap** : pause.
+- **Manette** : stick gauche ou croix pour bouger, **A** pour jouer, **B** ou **X** : bombe, **Start** : pause.
+- **Plein écran** : le bouton du même nom ; Échap pour en sortir. Hors plein écran, le jeu prend toute la hauteur que laisse la fenêtre.
 
 ## Règles
 
@@ -32,9 +34,17 @@ Un jeu de tir spatial à défilement vertical : ton vaisseau tire tout seul, à 
 
 Chaque ennemi détruit rapporte des points, multipliés par ton **multiplicateur** : il monte de 0,5 tous les 10 ennemis détruits sans être touché, jusqu'à ×8, et retombe si tu restes 4 secondes sans rien détruire. Chaque vague nettoyée rapporte 200 points par numéro de vague.
 
+## Sons et musique
+
+Tout est joué en direct, sans fichier : une musique de jeu vidéo à l'ancienne (basse, batterie et une mélodie tirée à chaque partie), plus rapide et plus sombre face au vaisseau amiral ; des sons pour les tirs, les explosions, la bombe, les bonus, l'alerte et la fin. Les boutons **Musique** et **Sons** coupent l'un ou l'autre, et ton choix est gardé. La musique se tait en pause.
+
+## Textes
+
+Les textes du jeu sont en grosses lettres pixel : le score en haut, et un écran titre, une pause et une fin de partie lisibles de loin.
+
 ## Statistiques
 
-En fin de partie : ton score, la vague atteinte et ton record. Le meilleur score et la meilleure vague sont gardés.
+En fin de partie : ton score, la vague atteinte et ton record (ou « nouveau record »). À côté du jeu : ton meilleur score, ta meilleure vague et ton nombre de parties.
 
 ## Données et synchronisation
 

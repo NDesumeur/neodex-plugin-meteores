@@ -10,6 +10,8 @@ A vertical scrolling space shooter: your ship fires on its own, and it is up to 
 - The ship **fires on its own**.
 - **Space** or **right-click**: **bomb**, which clears the screen (at least one per wave).
 - **P** or **Escape**: pause.
+- **Gamepad**: left stick or d-pad to move, **A** to play, **B** or **X**: bomb, **Start**: pause.
+- **Full screen**: the button of the same name; Escape to leave it. Otherwise the game takes all the height the window leaves.
 
 ## Rules
 
@@ -32,9 +34,17 @@ A vertical scrolling space shooter: your ship fires on its own, and it is up to 
 
 Each destroyed enemy is worth points, multiplied by your **multiplier**: it rises by 0.5 every 10 enemies destroyed without being hit, up to ×8, and drops back if you go 4 seconds without destroying anything. Each cleared wave is worth 200 points times the wave number.
 
+## Sounds and music
+
+Everything is played live, with no files: old-school video game music (bass, drums and a melody drawn each game), faster and darker against the flagship; sounds for shots, explosions, the bomb, bonuses, the alert and game over. The **Music** and **Sounds** buttons turn either off, and your choice is kept. The music goes quiet while paused.
+
+## Text
+
+The game's text is in big pixel letters: the score at the top, and a title screen, pause and game over that read from afar.
+
 ## Statistics
 
-At the end of a game: your score, the wave reached and your record. The best score and best wave are kept.
+At the end of a game: your score, the wave reached and your record (or "new record"). Beside the game: your best score, best wave and number of games.
 
 ## Data and sync
 
