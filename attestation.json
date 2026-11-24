@@ -1,9 +1,9 @@
 {
   "pluginId": "neodex.meteores",
   "repo": "NDesumeur/neodex-plugin-meteores",
-  "version": "1.4.2",
-  "sha256": "faf4379a8efbf7a2c28f3aac5a5780f13fd0e53bf9dbff8afdba3f27c2964c9e",
-  "approvedAt": "2026-11-19T23:26:40.664Z",
+  "version": "1.5.0",
+  "sha256": "918de9dd686d4ea46115429d9de158203b098e20cf97db8c77fa6be4137f322d",
+  "approvedAt": "2026-11-24T15:56:13.847Z",
   "neobase": ">=4.0.0",
-  "signature": "lWM2I5N47Q6tEeCnO+XSHJAHXCHbQ0y94J+5eaD9y4CLypRTFugRxwmol9hIIDV9RSUbofAe2uWnsutfmjVSAA=="
+  "signature": "DKeIlZIJY8PNYHAlmrBlBth1pv4MLBx7VW2jLbn3ZyRLL5kosY9pCHJrW2u3MNLoC4NpaM1o1Uh8fpS62eKHBg=="
 }
