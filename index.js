@@ -7,8 +7,8 @@ const HTML = `<div class="appWrap wide">
       <div class="sysCard"><b>RECORDS</b><div class="gStats" id="gStats"></div></div>
       <div class="row"><button class="btn main" id="gNew">NOUVELLE PARTIE</button><button class="btn" id="gFs">PLEIN ÉCRAN</button></div>
       <div class="row"><button class="btn" id="shMus">MUSIQUE : OUI</button><button class="btn" id="shSnd">SONS : OUI</button></div>
-      <div class="hint">Flèches, ZQSD ou souris : bouger · le vaisseau tire tout seul · espace ou clic droit : bombe (une par vague) · P ou Échap : pause. Seul le cockpit (le point blanc) peut être touché. Des météores, des drones, et un vaisseau amiral toutes les 5 vagues. Bonus : arme plus forte, bouclier, vie.</div>
-      <div class="hint">Manette : stick ou croix pour bouger, A pour jouer, B ou X : bombe, Start : pause.</div>
+      <div class="hint">Flèches, ZQSD ou souris : bouger · le vaisseau tire tout seul · espace ou clic droit : bombe (une par vague) · Maj maintenue : visée lente, zone visible · P ou Échap : pause. Seul le cockpit (le point blanc) peut être touché : frôler les tirs ennemis rapporte des points, garde ton multiplicateur et remplit la jauge de bombe. Des météores, des drones, et un vaisseau amiral toutes les 5 vagues. Bonus : arme plus forte, bouclier, vie.</div>
+      <div class="hint">Manette : stick ou croix pour bouger, A pour jouer, B ou X : bombe, LB ou RB : visée lente, Start : pause.</div>
     </div></div>
 </div>`;
 const CSS = `.gMain{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap}
@@ -376,6 +376,7 @@ const SFX = new Proxy({
   item: () => [660, 880, 1320].forEach((f, i) => shTone(f, .08, 'square', 0, .03, i * .05)),
   coin: () => { shTone(1320, .05, 'square', 0, .02); shTone(1760, .08, 'square', 0, .02, .05); },
   bomb: () => { shNoise(1.1, .2, 3000, 0, 80); shTone(220, .9, 'sawtooth', 30, .07); },
+  graze: () => shTone(2400, .025, 'square', 3200, .008),
   alarm: () => { for (let i = 0; i < 4; i++) { shTone(660, .18, 'square', 0, .035, i * .4); shTone(440, .18, 'square', 0, .035, i * .4 + .2); } },
   wave: () => [523, 659, 784, 1047].forEach((f, i) => shTone(f, .12, 'triangle', 0, .05, i * .08)),
   over: () => [392, 330, 262, 196].forEach((f, i) => shTone(f, .28, 'triangle', 0, .06, i * .2)),
@@ -414,7 +415,7 @@ setInterval(() => shMus.tick(), 60);
 function shStart() {
   sh = sh || {raf: 0};
   Object.assign(sh, {g: $('shCanvas').getContext('2d'), mode: 'ready', tick: 0, t: 0, x: SH.W / 2, y: SH.H - 34, vx: 0, vy: 0, target: null, shots: [], bullets: [], rocks: [], foes: [], items: [], parts: [], score: 0, lives: 3,
-    inv: 0, cool: 0, power: 1, bombs: 1, flashB: 0, shield: 0, magnet: 0, mult: 1, multT: 0, kills: 0, wave: 0, queue: [], spawnT: 0, banner: 0, dry: 0, boss: null, shake: 0, keys: {}, firing: false, overAt: 0,
+    inv: 0, cool: 0, power: 1, bombs: 1, flashB: 0, shield: 0, magnet: 0, mult: 1, multT: 0, graze: 0, gauge: 0, bombR: 0, bx: 0, by: 0, kills: 0, wave: 0, queue: [], spawnT: 0, banner: 0, dry: 0, boss: null, shake: 0, keys: {}, firing: false, overAt: 0,
     stars: Array.from({length: 90}, () => [Math.random() * SH.W, Math.random() * SH.H, Math.random()])});
   shNextWave();
   $('shInfo').textContent = 'Record : ' + (games?.best.shooter ?? 0) + ' · meilleure vague ' + (games?.best.shooterWave ?? 0); shStats();
@@ -466,10 +467,19 @@ function shKill(x, y, pts, colors) {
 }
 function shBomb() {
   if (!sh.bombs || sh.mode !== 'play') return;
-  sh.bombs--; sh.flashB = 24; sh.shake = 14; sh.bullets = []; SFX.bomb();
+  sh.bombs--; sh.flashB = 24; sh.shake = 14; sh.inv = Math.max(sh.inv, 70); sh.bombR = 4; sh.bx = sh.x; sh.by = sh.y; SFX.bomb();
+  for (const b of sh.bullets.slice(0, 60)) sh.items.push({x: b.x, y: b.y, kind: 'G', vy: .6, v: 10, pull: true});  // chaque tir effacé devient une petite pièce
+  sh.bullets = [];
   for (const r of sh.rocks) r.hp -= 6;
   for (const f of sh.foes) f.hp -= 12;
   if (sh.boss) { sh.boss.hp -= 40; sh.boss.flash = 6; }
+}
+const SH_GRAZE = 10, SH_GAUGE = 30;  // distance du frôlement (pixels) ; frôlements pour une bombe
+function shGraze(b) {
+  b.gz = true; sh.graze++; sh.score += Math.round(10 * sh.mult); if (sh.mult > 1) sh.multT = 240;  // frôler garde le multiplicateur en vie
+  if (++sh.gauge >= SH_GAUGE) { sh.gauge = 0; if (sh.bombs < 5) { sh.bombs++; SFX.item(); } else sh.score += 1000; }
+  for (let i = 0; i < 3; i++) sh.parts.push({x: (b.x + sh.x) / 2, y: (b.y + sh.y) / 2, vx: (Math.random() - .5) * 1.6, vy: (Math.random() - .5) * 1.6, life: 10, c: i ? '#7fe0ee' : '#ffffff'});
+  SFX.graze();
 }
 function shHurt() {
   if (sh.inv > 0) return;
@@ -478,7 +488,7 @@ function shHurt() {
   shBoom(sh.x, sh.y, 24, ['#ff5ad9', '#ffffff', '#ffd07a'], 2.4); if (sh.lives > 0) SFX.hurt();
   if (sh.lives <= 0) {
     sh.mode = 'over'; sh.overAt = Date.now(); SFX.over(); shs.games++;
-    const rec = best('shooter', sh.score); best('shooterWave', sh.wave); saveGames(); sh.rec = rec; shStats();
+    const rec = best('shooter', sh.score); best('shooterWave', sh.wave); best('shooterGraze', sh.graze); saveGames(); sh.rec = rec; shStats();
     $('shInfo').textContent = 'Score ' + sh.score + ' · vague ' + sh.wave + (rec ? ' · NOUVEAU RECORD !' : ' · record ' + games.best.shooter);
   }
 }
@@ -494,11 +504,11 @@ function shFire() {
 function shUpdate() {
   sh.t++;
   // ship: both axes, keyboard (arrows, ZQSD / WASD) or glides toward the mouse
-  const K = sh.keys, left = K.ArrowLeft || K.q || K.a, right = K.ArrowRight || K.d, up = K.ArrowUp || K.z || K.w, down = K.ArrowDown || K.s;
-  if (sh.pad && (Math.abs(sh.pad[0]) > .2 || Math.abs(sh.pad[1]) > .2)) { sh.target = null; sh.vx += sh.pad[0] * .5; sh.vy += sh.pad[1] * .5; }
-  else if (left || right || up || down) { sh.target = null; sh.vx += (right ? .5 : 0) - (left ? .5 : 0); sh.vy += (down ? .5 : 0) - (up ? .5 : 0); }
+  const K = sh.keys, slow = sh.focus = !!(K.Shift || sh.padSlow), acc = slow ? .22 : .5, left = K.ArrowLeft || K.q || K.a, right = K.ArrowRight || K.d, up = K.ArrowUp || K.z || K.w, down = K.ArrowDown || K.s;
+  if (sh.pad && (Math.abs(sh.pad[0]) > .2 || Math.abs(sh.pad[1]) > .2)) { sh.target = null; sh.vx += sh.pad[0] * acc; sh.vy += sh.pad[1] * acc; }
+  else if (left || right || up || down) { sh.target = null; sh.vx += (right ? acc : 0) - (left ? acc : 0); sh.vy += (down ? acc : 0) - (up ? acc : 0); }
   else if (sh.target) { sh.vx += Math.max(-.5, Math.min(.5, (sh.target[0] - sh.x) * .09)); sh.vy += Math.max(-.5, Math.min(.5, (sh.target[1] - sh.y) * .09)); }
-  sh.vx = Math.max(-3, Math.min(3, sh.vx * .84)); sh.vy = Math.max(-3, Math.min(3, sh.vy * .84));
+  const vmax = slow ? 1.3 : 3; sh.vx = Math.max(-vmax, Math.min(vmax, sh.vx * .84)); sh.vy = Math.max(-vmax, Math.min(vmax, sh.vy * .84));
   sh.x = Math.max(6, Math.min(SH.W - 6, sh.x + sh.vx)); sh.y = Math.max(40, Math.min(SH.H - 10, sh.y + sh.vy));
   if (--sh.cool <= 0) shFire();  // le vaisseau tire tout seul
   for (const k of ['inv', 'shield', 'magnet', 'banner', 'flashB']) if (sh[k] > 0) sh[k]--;
@@ -536,6 +546,8 @@ function shUpdate() {
     }
   }
   for (const b of sh.bullets) { b.x += b.vx; b.y += b.vy; }
+  if (sh.bombR) { sh.bombR += 8; for (const b of sh.bullets) if (Math.hypot(b.x - sh.bx, b.y - sh.by) < sh.bombR) b.hit = true; if (sh.bombR > 420) sh.bombR = 0; }
+  if (sh.mode === 'play' && !sh.inv) for (const b of sh.bullets) if (!b.gz && !b.hit) { const d = Math.hypot(b.x - sh.x, b.y - sh.y); if (d >= 3 && d < SH_GRAZE) shGraze(b); }
   // hits on rocks, ships and the boss
   for (const s of sh.shots) {
     if (s.hit) continue;
@@ -559,11 +571,11 @@ function shUpdate() {
   sh.shots = sh.shots.filter(s => !s.hit && s.y > -8 && s.y < SH.H + 8 && s.x > -8 && s.x < SH.W + 8);
   // items: fall, pulled by the magnet
   for (const it of sh.items) {
-    if (sh.magnet > 0 || it.kind === 'G' && Math.hypot(it.x - sh.x, it.y - sh.y) < 30) { const a = Math.atan2(sh.y - it.y, sh.x - it.x); it.x += Math.cos(a) * 2.6; it.y += Math.sin(a) * 2.6; } else it.y += it.vy;
+    if (sh.magnet > 0 || it.pull || it.kind === 'G' && Math.hypot(it.x - sh.x, it.y - sh.y) < 30) { const a = Math.atan2(sh.y - it.y, sh.x - it.x); it.x += Math.cos(a) * 2.6; it.y += Math.sin(a) * 2.6; } else it.y += it.vy;
     if (!it.got && Math.abs(it.x - sh.x) < 9 && Math.abs(it.y - sh.y) < 9) {
       it.got = true; it.kind === 'G' ? SFX.coin() : SFX.item();
       if (it.kind === 'P') { if (sh.power < 5) sh.power++; else sh.score += 500; } if (it.kind === 'B') sh.bombs = Math.min(5, sh.bombs + 1);
-      if (it.kind === 'S') sh.shield = 900; if (it.kind === 'L') sh.lives = Math.min(6, sh.lives + 1); if (it.kind === 'M') sh.magnet = 600; if (it.kind === 'G') sh.score += Math.round(50 * sh.mult);
+      if (it.kind === 'S') sh.shield = 900; if (it.kind === 'L') sh.lives = Math.min(6, sh.lives + 1); if (it.kind === 'M') sh.magnet = 600; if (it.kind === 'G') sh.score += Math.round((it.v || 50) * sh.mult);
     }
   }
   sh.items = sh.items.filter(it => !it.got && it.y < SH.H + 8);
@@ -608,6 +620,11 @@ function shDraw() {
     if (sh.magnet > 0 && (sh.tick >> 3) % 2) { g.strokeStyle = 'rgba(180,106,238,.5)'; g.strokeRect(sh.x - 13.5, sh.y - 13.5, 27, 27); }
   }
   for (const p of sh.parts) px(g, p.c, p.x, p.y, p.life > 10 ? 2 : 1, p.life > 10 ? 2 : 1);
+  if (sh.bombR) { const n = 64; for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; px(g, i % 2 ? '#ffd07a' : '#ffffff', sh.bx + Math.cos(a) * sh.bombR, sh.by + Math.sin(a) * sh.bombR, 2, 2); } }
+  if (sh.focus && sh.mode === 'play') {  // visée lente : le cercle du frôlement et le cockpit bien visibles
+    for (let i = 0; i < 24; i++) { const a = i / 24 * Math.PI * 2 + sh.tick / 30; px(g, 'rgba(127,224,238,.7)', sh.x + Math.cos(a) * SH_GRAZE, sh.y + Math.sin(a) * SH_GRAZE, 1, 1); }
+    px(g, '#ff4f6d', sh.x - 2, sh.y - 2, 4, 4); px(g, '#ffffff', sh.x - 1, sh.y - 1, 2, 2);
+  }
   if (sh.flashB) { g.fillStyle = `rgba(255,240,220,${sh.flashB / 30})`; g.fillRect(-4, -4, W + 8, H + 8); }
   g.restore();
   // interface
@@ -618,14 +635,16 @@ function shDraw() {
   for (let i = 0; i < sh.lives; i++) { const x = W - 10 - i * 9; px(g, '#ff4f6d', x, 4, 3, 2); px(g, '#ff4f6d', x + 4, 4, 3, 2); px(g, '#ff4f6d', x, 6, 7, 2); px(g, '#ff4f6d', x + 1, 8, 5, 1); px(g, '#ff4f6d', x + 2, 9, 3, 1); }
   for (let i = 0; i < 5; i++) px(g, i < sh.power ? '#7fe0ee' : '#2a1d52', W - 50 + i * 6, 17, 5, 4);
   for (let i = 0; i < sh.bombs; i++) { px(g, '#ff9a3c', W - 50 + i * 6, 25, 5, 5); px(g, '#ffd07a', W - 49 + i * 6, 25, 1, 1); }
+  px(g, '#2a1d52', W - 50, 31, 29, 2); px(g, '#7fe0ee', W - 50, 31, Math.round(29 * sh.gauge / SH_GAUGE), 2);  // la jauge de bombe, remplie en frôlant
+  if (sh.graze) pxFont(g, 'FRÔLÉ ' + sh.graze, 124, 31, '#7fe0ee');
   const msg = shScreen(); if (msg) gameText(g, W, msg, sh.mode === 'play' ? 130 : sh.mode === 'ready' ? 156 : 170);
 }
 function shScreen(m = sh.mode) {  // les textes par-dessus le jeu : écran titre, vague, pause, fin
   if (m === 'play') return sh.banner > 0 && (sh.wave % 5 === 0 ? [['ALERTE !', '#ff4f6d', 24], ['VAISSEAU AMIRAL', '#ff5ad9', 16]] : [['VAGUE ' + sh.wave, '#ff5ad9', 24]]);
   if (m === 'ready') return [['MÉTÉORES', '#ff5ad9', 24], ['', '', 8], ['TIR AUTOMATIQUE', '#d9c6ff', 16], ['FLÈCHES OU ZQSD', '#d9c6ff', 16], ['OU LA SOURIS', '#d9c6ff', 16], ['ESPACE : BOMBE', '#ffd07a', 16], ['', '', 8],
-    ['P ARME · S BOUCLIER · L VIE', '#c9bdf0'], ['B BOMBE · A AIMANT', '#c9bdf0'], ['', '', 8], [(sh.tick >> 5) % 2 ? 'APPUIE POUR JOUER' : '', '#ffffff', 16]];
+    ['MAJ : VISÉE LENTE', '#d9c6ff', 16], ['FRÔLE LES TIRS : DES POINTS', '#7fe0ee'], ['P ARME · S BOUCLIER · L VIE', '#c9bdf0'], ['B BOMBE · A AIMANT', '#c9bdf0'], ['', '', 8], [(sh.tick >> 5) % 2 ? 'APPUIE POUR JOUER' : '', '#ffffff', 16]];
   if (m === 'pause') return [['PAUSE', '#ff5ad9', 24], ['ESPACE : REPRENDRE', '#ffffff', 16]];
-  if (m === 'over') return [['PERDU', '#ff5ad9', 24], ['SCORE ' + sh.score, '#ffffff', 16], ['VAGUE ' + sh.wave, '#d9c6ff', 16], sh.rec ? ['NOUVEAU RECORD !', '#ffd07a', 16] : ['RECORD ' + (games?.best.shooter ?? 0), '#ffd07a', 16], ['', '', 8], ['ESPACE : REJOUER', '#d9c6ff', 16]];
+  if (m === 'over') return [['PERDU', '#ff5ad9', 24], ['SCORE ' + sh.score, '#ffffff', 16], ['VAGUE ' + sh.wave, '#d9c6ff', 16], sh.rec ? ['NOUVEAU RECORD !', '#ffd07a', 16] : ['RECORD ' + (games?.best.shooter ?? 0), '#ffd07a', 16], ['FRÔLÉS : ' + (sh.graze || 0), '#7fe0ee', 16], ['', '', 8], ['ESPACE : REJOUER', '#d9c6ff', 16]];
 }
 $('shCanvas').onpointermove = e => { if (!sh) return; const r = e.currentTarget.getBoundingClientRect(); sh.target = [(e.clientX - r.left) / r.width * SH.W, (e.clientY - r.top) / r.height * SH.H - 14]; };
 $('shCanvas').onpointerdown = e => { if (!sh) return; if (e.button === 2) return shBomb(); shPress(); };
@@ -641,7 +660,7 @@ document.addEventListener('keydown', e => {  // le cœur ne transmet plus les to
   sh.keys[k] = true;
 });
 document.addEventListener('keyup', e => { const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; if (sh) sh.keys[k] = false; });
-function shStats() { $('gStats').replaceChildren(...[['Meilleur score', games.best.shooter ?? 0], ['Meilleure vague', games.best.shooterWave ?? 0], ['Parties', shs.games]].flatMap(([a, v]) => [el('span', '', a), el('b', '', String(v))])); }
+function shStats() { $('gStats').replaceChildren(...[['Meilleur score', games.best.shooter ?? 0], ['Meilleure vague', games.best.shooterWave ?? 0], ['Plus de frôlements', games.best.shooterGraze ?? 0], ['Parties', shs.games]].flatMap(([a, v]) => [el('span', '', a), el('b', '', String(v))])); }
 {  // la manette : stick gauche ou croix pour bouger, A pour jouer, B ou X : bombe, Start : pause ; un appui = une action
   let prev = [];
   const loop = () => {
@@ -650,7 +669,7 @@ function shStats() { $('gStats').replaceChildren(...[['Meilleur score', games.be
     if (!p || !sh || !view.classList.contains('on')) { prev = []; if (sh) sh.pad = null; return; }
     const now = p.buttons.map(x => x.pressed), was = prev, hit = i => now[i] && !was[i]; prev = now;
     const dx = (now[15] ? 1 : 0) - (now[14] ? 1 : 0) || (Math.abs(p.axes[0] || 0) > .2 ? p.axes[0] : 0), dy = (now[13] ? 1 : 0) - (now[12] ? 1 : 0) || (Math.abs(p.axes[1] || 0) > .2 ? p.axes[1] : 0);
-    sh.pad = [dx, dy];
+    sh.pad = [dx, dy]; sh.padSlow = now[4] || now[5];
     if (hit(0) && shPress()) return;
     if (hit(1) || hit(2)) shBomb();
     if (hit(9)) { if (sh.mode === 'play') sh.mode = 'pause'; else shPress(); }
@@ -664,7 +683,7 @@ $('gNew').onclick = () => { $('gNew').blur(); shStart(); };
 $('gFs').onclick = () => { $('gFs').blur(); try { if (document.fullscreenElement) document.exitFullscreen(); else $('shCanvas').parentElement.requestFullscreen?.().catch(() => {}); } catch {} };
 function shCheck() {  // vérification : chaque texte tient dans l'écran du jeu, la musique a ses 4 mesures, chaque bonus a sa lettre
   const bad = [], keep = sh;
-  sh = {mode: 'ready', tick: 0, wave: 5, banner: 1, score: 9999999, rec: false};
+  sh = {mode: 'ready', tick: 0, wave: 5, banner: 1, score: 9999999, rec: false, graze: 9999};
   for (const m of ['ready', 'play', 'pause', 'over']) for (const tick of [0, 32]) { sh.tick = tick; for (const [t, , size] of shScreen(m) || []) if (PXK.layout(t).w * PXK.scale(size) > SH.W - 6) bad.push(m + ' : ' + t); }
   sh.wave = 4; for (const [t, , size] of shScreen('play')) if (PXK.layout(t).w * PXK.scale(size) > SH.W - 6) bad.push(t);
   sh = keep;
@@ -674,7 +693,7 @@ function shCheck() {  // vérification : chaque texte tient dans l'écran du jeu
   return bad.length ? [...new Set(bad)].join(', ') : 'ok';
 }
 console.assert(shCheck() === 'ok', 'météores', shCheck());
-$('shCanvas').__sh = {st: () => sh, check: shCheck, mus: shMus, shs, played: () => shPlayed, screen: shScreen, next: () => shNextWave()};
+$('shCanvas').__sh = {st: () => sh, bomb: () => shBomb(), check: shCheck, mus: shMus, shs, played: () => shPlayed, screen: shScreen, next: () => shNextWave()};
   // ---- fin ----
   ctx.onOpen(() => { sh ? gameLoop(sh, 'neodex:shooter', shUpdate, shDraw) : shStart(); });
 }

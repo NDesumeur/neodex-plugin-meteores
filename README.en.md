@@ -21,6 +21,14 @@ A vertical scrolling space shooter: your ship fires on its own, and it is up to 
 - Every 5 waves, an alert announces a **flagship**; it drops a shower of bonuses when destroyed.
 - You start with 3 lives. Getting hit costs a life, a weapon level and your multiplier; a few moments of invincibility follow.
 
+## Grazing and bombs (new in 1.5.0)
+
+- **Graze**: an enemy shot passing very close to the cockpit without hitting it counts as a graze (small spark and sound). Each one gives 10 points × your multiplier, and **resets the multiplier countdown**: by grazing, you keep it even without destroying anything. The GRAZE counter is shown at the top.
+- **Bomb gauge**: the small blue bar under the bombs fills with each graze; 30 grazes = **one more bomb** (1,000 points if you already have 5).
+- **The bomb** sends a shockwave from your ship: it wipes every shot, even those arriving while it grows, damages everything on screen, makes you invincible for a moment, and **every wiped shot turns into a small coin** that flies to you.
+- **Hold Shift** (or LB / RB on a gamepad) for **slow aim**: the ship moves gently, the cockpit gets a red outline and the graze circle is shown.
+- The number of grazes is shown at the end of the game, and the record is kept ("Most grazes").
+
 ## Bonuses
 
 - **P**: stronger weapon (5 levels; at the maximum, 500 points instead).

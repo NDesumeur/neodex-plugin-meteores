@@ -6,10 +6,7 @@
  "Bouclier": "Shield",
  "Ce plugin doit être approuvé par NeoDex pour s'ouvrir.": "This plugin must be approved by NeoDex to open.",
  "Escape": "Escape",
- "Flèches, ZQSD ou souris : bouger · le vaisseau tire tout seul · espace ou clic droit : bombe (une par vague) · P ou Échap : pause. Seul le cockpit (le point blanc) peut être touché. Des météores, des drones, et un vaisseau amiral toutes les 5 vagues. Bonus : arme plus forte, bouclier, vie.": "Arrows, ZQSD or mouse: move · the ship fires on its own · space or right click: bomb (one per wave) · P or Escape: pause. Only the cockpit (the white dot) can be hit. Meteors, drones, and a flagship every 5 waves. Bonus: stronger weapon, shield, life.",
- "Jeu de tir spatial vertical : ton vaisseau tire tout seul, déplace-le au clavier ou à la souris pour détruire des météores qui se divisent, des drones en vagues et un vaisseau amiral toutes les 5 vagues. Seul le cockpit est vulnérable ; bombes, bouclier, aimant, vies et arme jusqu'au niveau 5, multiplicateur jusqu'à ×8, record de score et de vague. Grands textes en pixel art, musique et sons faits en direct, manette, plein écran.": "A vertical space shooter: your ship fires on its own, move it with the keyboard or mouse to destroy meteors that split, drones in waves and a flagship every 5 waves. Only the cockpit can be hit; bombs, shield, magnet, lives and a weapon up to level 5, a multiplier up to ×8, and score and wave records. Big pixel-art text, music and sounds made live, gamepad, full screen.",
  "MUSIQUE : OUI": "MUSIC: ON",
- "Manette : stick ou croix pour bouger, A pour jouer, B ou X : bombe, Start : pause.": "Gamepad: stick or d-pad to move, A to play, B or X: bomb, Start: pause.",
  "Meilleur score": "Best score",
  "Meilleure vague": "Best wave",
  "MÉTÉORES": "METEORS",
@@ -87,5 +84,14 @@
  "NON": "OFF",
  "SONS :": "SOUNDS:",
  "météores": "meteors",
- "Rien n'est synchronisé : tes records restent sur cet appareil.": "Nothing is synced: your records stay on this device."
+ "Rien n'est synchronisé : tes records restent sur cet appareil.": "Nothing is synced: your records stay on this device.",
+ "Flèches, ZQSD ou souris : bouger · le vaisseau tire tout seul · espace ou clic droit : bombe (une par vague) · Maj maintenue : visée lente, zone visible · P ou Échap : pause. Seul le cockpit (le point blanc) peut être touché : frôler les tirs ennemis rapporte des points, garde ton multiplicateur et remplit la jauge de bombe. Des météores, des drones, et un vaisseau amiral toutes les 5 vagues. Bonus : arme plus forte, bouclier, vie.": "Arrows, ZQSD or mouse: move · the ship fires by itself · space or right-click: bomb (one per wave) · hold Shift: slow aim, hitbox shown · P or Escape: pause. Only the cockpit (the white dot) can be hit: grazing enemy shots gives points, keeps your multiplier alive and fills the bomb gauge. Meteors, drones, and a flagship every 5 waves. Bonuses: stronger weapon, shield, life.",
+ "Manette : stick ou croix pour bouger, A pour jouer, B ou X : bombe, LB ou RB : visée lente, Start : pause.": "Gamepad: stick or d-pad to move, A to play, B or X: bomb, LB or RB: slow aim, Start: pause.",
+ "FRÔLÉ": "GRAZE",
+ "MAJ : VISÉE LENTE": "SHIFT: SLOW AIM",
+ "FRÔLE LES TIRS : DES POINTS": "GRAZE SHOTS FOR POINTS",
+ "FRÔLÉS :": "GRAZES:",
+ "Plus de frôlements": "Most grazes",
+ "Shift": "Shift",
+ "Jeu de tir spatial vertical : ton vaisseau tire tout seul, déplace-le au clavier ou à la souris pour détruire des météores qui se divisent, des drones en vagues et un vaisseau amiral toutes les 5 vagues. Seul le cockpit est vulnérable ; bombes, bouclier, aimant, vies et arme jusqu'au niveau 5, multiplicateur jusqu'à ×8, record de score et de vague. Grands textes en pixel art, musique et sons faits en direct, manette, plein écran. Frôler les tirs rapporte des points et remplit la jauge de bombe ; la bombe change les tirs en pièces ; Maj pour la visée lente.": "A vertical space shooter: your ship fires on its own, move it with the keyboard or mouse to destroy meteors that split, drones in waves and a flagship every 5 waves. Only the cockpit can be hit; bombs, shield, magnet, lives and a weapon up to level 5, a multiplier up to ×8, and score and wave records. Big pixel-art text, music and sounds made live, gamepad, full screen. Grazing shots gives points and fills the bomb gauge; the bomb turns shots into coins; Shift for slow aim."
 }

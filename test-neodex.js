@@ -26,6 +26,19 @@ module.exports = async ({ pj, sleep }) => {
   await key('p'); await sleep(200); if (await C('return sh.mode;') !== 'pause') throw new Error('P devait mettre en pause');
   const n0 = await C('return T.mus.notes;'); await sleep(600); const n1 = await C('return T.mus.notes;'); if (n1 > n0 + 3) throw new Error('la musique devait se taire en pause');
   await shot('2-pause'); await key(' '); await key(' ', true); await sleep(100); if (await C('return sh.mode;') !== 'play') throw new Error('Espace devait reprendre');
+  // frôler (1.5.0) : un tir qui passe à 6 pixels du cockpit compte un frôlement, des points, et ne coûte pas de vie
+  const gz = await C('sh.inv = 0; sh.shield = 0; sh.lives = 3; sh.bullets = []; sh.foes = []; sh.rocks = []; sh.queue = []; sh.keys = {}; sh.target = null; sh.vx = sh.vy = 0; const s0 = sh.score; sh.graze = 0; sh.gauge = 0; sh.bullets.push({x: sh.x + 6, y: sh.y - 30, vx: 0, vy: 2}); return s0;');
+  await sleep(700);
+  const g1 = await C('return sh.graze + "|" + sh.lives + "|" + (sh.score > ' + gz + ');'); if (g1 !== '1|3|true') throw new Error('frôlement : ' + g1);
+  // la jauge pleine donne une bombe ; Maj ralentit et montre la zone
+  const bg = await C('sh.bombs = 1; sh.gauge = 29; sh.bullets.push({x: sh.x - 6, y: sh.y - 30, vx: 0, vy: 2}); return 0;'); void bg; await sleep(700);
+  if (await C('return sh.bombs + "|" + sh.gauge;') !== '2|0') throw new Error('la jauge pleine devait donner une bombe : ' + await C('return sh.bombs + "|" + sh.gauge;'));
+  await key('Shift'); await sleep(200); for (let i = 0; i < 12; i++) await C('sh.bullets.push({x: sh.x + (i => i)(' + i + ') * 4 - 22, y: sh.y - 60, vx: 0, vy: 1.4}); return 0;');
+  await sleep(500); await shot('1b-visee-lente'); const foc = await C('return sh.focus;'); await key('Shift', true); if (!foc) throw new Error('Maj devait passer en visée lente');
+  // la bombe : les tirs deviennent des pièces, le vaisseau est protégé le temps de l'onde
+  await C('sh.bullets = []; for (let i = 0; i < 20; i++) sh.bullets.push({x: 30 + i * 9, y: 120, vx: 0, vy: .3}); T.bomb(); return 0;'); await sleep(150); await shot('1c-bombe');
+  const bm = await C('return sh.bullets.length + "|" + sh.items.filter(i => i.kind === "G" && i.v === 10).length + "|" + (sh.inv > 0);'); if (!/^0\|\d+\|true$/.test(bm) || +bm.split('|')[1] < 15) throw new Error('bombe : ' + bm);
+  await C('sh.inv = 1e9; return 0;');
   // le vaisseau amiral : vague 5 (alerte, musique du combat)
   await C('sh.wave = 4; sh.queue = []; sh.rocks = []; sh.foes = []; T.next(); return 0;'); await sleep(700); await shot('3-alerte');
   await sleep(2400);
@@ -47,5 +60,5 @@ module.exports = async ({ pj, sleep }) => {
   const L = await pj(`(() => { const r = document.getElementById('shCanvas').getBoundingClientRect(); let s = 0; for (let e = document.getElementById('shCanvas').parentElement; e; e = e.parentElement) s += e.scrollTop; return { bottom: Math.round(r.bottom + s), h: Math.round(r.height), wh: innerHeight, ww: innerWidth, sw: document.documentElement.scrollWidth }; })()`);
   if (process.env.NEO_FIT_LOG) console.log('FIT', JSON.stringify(L));
   if (L.bottom > L.wh + 1 || L.sw > L.ww + 1 || L.h < 300) throw new Error('la zone de jeu dépasse la fenêtre ou reste petite : ' + JSON.stringify(L));
-  return 'vérification ok · écran titre · manette (A, stick, B) · musique ' + mus[0] + ' notes · sons · pause · vaisseau amiral · fin · plein écran · ' + L.h + ' px dans ' + L.ww + '×' + L.wh;
+  return 'vérification ok · écran titre · manette (A, stick, B) · frôlement · jauge · visée lente · bombe · musique ' + mus[0] + ' notes · sons · pause · vaisseau amiral · fin · plein écran · ' + L.h + ' px dans ' + L.ww + '×' + L.wh;
 };

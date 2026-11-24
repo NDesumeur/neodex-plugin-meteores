@@ -9,8 +9,9 @@ Un jeu de tir spatial à défilement vertical : ton vaisseau tire tout seul, à 
 - **Flèches**, **ZQSD** ou **souris** : déplacer le vaisseau dans tout l'écran.
 - Le vaisseau **tire tout seul**.
 - **Espace** ou **clic droit** : **bombe**, qui nettoie l'écran (une par vague au moins).
+- **Maj** maintenue : **visée lente**. Le vaisseau va plus doucement, le cockpit est entouré de rouge et le cercle du frôlement s'affiche.
 - **P** ou **Échap** : pause.
-- **Manette** : stick gauche ou croix pour bouger, **A** pour jouer, **B** ou **X** : bombe, **Start** : pause.
+- **Manette** : stick gauche ou croix pour bouger, **A** pour jouer, **B** ou **X** : bombe, **LB** ou **RB** : visée lente, **Start** : pause.
 - **Plein écran** : le bouton du même nom ; Échap pour en sortir. Hors plein écran, le jeu prend toute la hauteur que laisse la fenêtre.
 
 ## Règles
@@ -20,6 +21,13 @@ Un jeu de tir spatial à défilement vertical : ton vaisseau tire tout seul, à 
 - Les **drones** arrivent en vagues, zigzaguent et tirent.
 - Toutes les 5 vagues, une alerte annonce un **vaisseau amiral** ; il lâche une pluie de bonus quand il est détruit.
 - Tu commences avec 3 vies. Être touché coûte une vie, un niveau d'arme et ton multiplicateur ; quelques instants d'invincibilité suivent.
+
+## Frôler et bombe (nouveau en 1.5.0)
+
+- **Frôler** : un tir ennemi qui passe tout près du cockpit sans le toucher compte un frôlement (petite étincelle et petit son). Chacun rapporte 10 points × ton multiplicateur, et **remet à zéro le compte à rebours du multiplicateur** : en frôlant, tu le gardes même sans rien détruire. Le compteur FRÔLÉ s'affiche en haut.
+- **Jauge de bombe** : la petite barre bleue sous les bombes se remplit à chaque frôlement ; 30 frôlements = **une bombe de plus** (1 000 points si tu en as déjà 5).
+- **La bombe** lance une onde de choc depuis ton vaisseau : elle efface tous les tirs, même ceux qui arrivent pendant qu'elle grandit, abîme tout ce qui est à l'écran, te rend invincible un instant, et **chaque tir effacé devient une petite pièce** qui vole vers toi.
+- Le nombre de frôlements s'affiche à la fin de la partie, et le record est gardé (« Plus de frôlements »).
 
 ## Bonus
 
