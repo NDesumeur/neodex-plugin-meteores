@@ -307,6 +307,9 @@ export default async function (ctx) {
   const saveGames = () => { clearTimeout(gamesTimer); gamesTimer = setTimeout(() => { gamesTimer = null; folder.write('games', games).catch(() => {}); }, 500); };
   const best = (k, v, higher = true) => { const b = games.best[k]; if (b == null || (higher ? v > b : v < b)) { games.best[k] = v; saveGames(); return true; } return false; };
   const gstore = (k, init) => (games[k] ??= init);  // la section d'un jeu
+  // les trophées de NeoDex (3.4.8 et plus) : succès et records déclarés dans plugin.json ; sur un NeoDex plus ancien, rien ne se passe
+  const trophy = id => { ctx.games?.unlock(id).catch(() => {}); };
+  const trophyRecord = (id, v) => { if (v != null && Number.isFinite(+v)) ctx.games?.record(id, +v).catch(() => {}); };
 function gameLoop(st, appKey, update, draw) {
   cancelAnimationFrame(st.raf);
   const STEP = 1000 / 60; let acc = 0, last = performance.now();
@@ -660,7 +663,8 @@ document.addEventListener('keydown', e => {  // le cœur ne transmet plus les to
   sh.keys[k] = true;
 });
 document.addEventListener('keyup', e => { const k = e.key.length === 1 ? e.key.toLowerCase() : e.key; if (sh) sh.keys[k] = false; });
-function shStats() { $('gStats').replaceChildren(...[['Meilleur score', games.best.shooter ?? 0], ['Meilleure vague', games.best.shooterWave ?? 0], ['Plus de frôlements', games.best.shooterGraze ?? 0], ['Parties', shs.games]].flatMap(([a, v]) => [el('span', '', a), el('b', '', String(v))])); }
+function shStats() {
+  setTimeout(shTrophies); $('gStats').replaceChildren(...[['Meilleur score', games.best.shooter ?? 0], ['Meilleure vague', games.best.shooterWave ?? 0], ['Plus de frôlements', games.best.shooterGraze ?? 0], ['Parties', shs.games]].flatMap(([a, v]) => [el('span', '', a), el('b', '', String(v))])); }
 {  // la manette : stick gauche ou croix pour bouger, A pour jouer, B ou X : bombe, Start : pause ; un appui = une action
   let prev = [];
   const loop = () => {
@@ -695,5 +699,12 @@ function shCheck() {  // vérification : chaque texte tient dans l'écran du jeu
 console.assert(shCheck() === 'ok', 'météores', shCheck());
 $('shCanvas').__sh = {st: () => sh, bomb: () => shBomb(), check: shCheck, mus: shMus, shs, played: () => shPlayed, screen: shScreen, next: () => shNextWave()};
   // ---- fin ----
-  ctx.onOpen(() => { sh ? gameLoop(sh, 'neodex:shooter', shUpdate, shDraw) : shStart(); });
+  // les trophées, tirés des statistiques et des records gardés (aussi à l'ouverture : ce qui a été fait avant compte)
+  function shTrophies() {
+    const b = games.best, sig = [b.shooter, b.shooterWave, b.shooterGraze, shs.games].join(); if (sig === shTrophies.sig) return; shTrophies.sig = sig;
+    trophyRecord('score', b.shooter || null); trophyRecord('vague', b.shooterWave || null); trophyRecord('frolements', b.shooterGraze || null);
+    if (shs.games >= 1) trophy('premier'); if (b.shooterWave >= 10) trophy('v10'); if (b.shooterWave >= 25) trophy('v25'); if (b.shooterWave >= 50) trophy('v50');
+    if (b.shooter >= 50000) trophy('s50000'); if (b.shooterGraze >= 100) trophy('frolements'); if (shs.games >= 50) trophy('cinquante');
+  }
+  ctx.onOpen(() => { setTimeout(shTrophies); sh ? gameLoop(sh, 'neodex:shooter', shUpdate, shDraw) : shStart(); });
 }

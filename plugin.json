@@ -1,7 +1,7 @@
 {
   "id": "neodex.meteores",
   "name": "Météores",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "author": "NDesumeur",
   "description": "Jeu de tir spatial vertical : ton vaisseau tire tout seul, déplace-le au clavier ou à la souris pour détruire des météores qui se divisent, des drones en vagues et un vaisseau amiral toutes les 5 vagues. Seul le cockpit est vulnérable ; bombes, bouclier, aimant, vies et arme jusqu'au niveau 5, multiplicateur jusqu'à ×8, record de score et de vague. Grands textes en pixel art, musique et sons faits en direct, manette, plein écran. Frôler les tirs rapporte des points et remplit la jauge de bombe ; la bombe change les tirs en pièces ; Maj pour la visée lente.",
   "icon": "icon.png",
@@ -22,5 +22,63 @@
   "sdk": "2.1.0",
   "permissions": [
     "storage"
+  ],
+  "succes": [
+    {
+      "id": "premier",
+      "nom": "Décollage",
+      "texte": "Finir une première partie"
+    },
+    {
+      "id": "v10",
+      "nom": "Pilote de chasse",
+      "texte": "Atteindre la vague 10"
+    },
+    {
+      "id": "v25",
+      "nom": "As de l'espace",
+      "texte": "Atteindre la vague 25"
+    },
+    {
+      "id": "v50",
+      "nom": "Légende galactique",
+      "texte": "Atteindre la vague 50",
+      "cache": true
+    },
+    {
+      "id": "s50000",
+      "nom": "Pluie de météores",
+      "texte": "Marquer 50 000 points en une partie"
+    },
+    {
+      "id": "frolements",
+      "nom": "Trompe-la-mort",
+      "texte": "Frôler 100 tirs en une partie"
+    },
+    {
+      "id": "cinquante",
+      "nom": "Vétéran",
+      "texte": "Jouer 50 parties"
+    }
+  ],
+  "records": [
+    {
+      "id": "score",
+      "nom": "Meilleur score",
+      "sens": "haut",
+      "format": "nombre"
+    },
+    {
+      "id": "vague",
+      "nom": "Meilleure vague",
+      "sens": "haut",
+      "format": "nombre"
+    },
+    {
+      "id": "frolements",
+      "nom": "Plus de frôlements",
+      "sens": "haut",
+      "format": "nombre"
+    }
   ]
 }
